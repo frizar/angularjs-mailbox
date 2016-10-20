@@ -8,9 +8,11 @@
 
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
   <link rel="stylesheet prefetch" href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
-  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="app.css">
 
-	<base href="/">
+	<script>
+		document.write(`<base href="${document.location}">`);
+	</script>
 </head>
 <body ng-cloak>
 
@@ -31,7 +33,7 @@
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
 <script src="//unpkg.com/angular-ui-router/release/angular-ui-router.min.js"></script>
 <!--<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>-->
-<script src="./app.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
