@@ -237,20 +237,6 @@
 			}
 		];
 
-		this.getRequestStatusIconClass = (requestType) => {
-			let status = REQUEST[requestType];
-
-			if (status === STATUS.PROGRESS) {
-				return 'fa fa-spinner fa-pulse fa-fw';
-			} else if (status === STATUS.OK) {
-				return 'fa fa-check';
-			} else if (status === STATUS.ERROR) {
-				return 'fa fa-exclamation-triangle';
-			}
-
-			return '';
-		};
-
 		this.removeAllData = () => {
 			return $http.delete(TEST_API_URL_DEFERRED)
 				.then(response => response.data)
