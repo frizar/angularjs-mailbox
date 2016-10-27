@@ -8,9 +8,9 @@
 	const TEST_API_URL_DEFERRED = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}?delay=${TEST_API_RESPONSE_DELAY}`;
 	const RESULT_DELAY = 3000;
 
-	const APP = angular.module('mailboxApp', ['ui.router']);
+	let app = angular.module('mailboxApp', ['ui.router']);
 
-	APP.config(function($stateProvider, $urlRouterProvider) {
+	app.config(function($stateProvider, $urlRouterProvider) {
 		$urlRouterProvider.otherwise('/mail');
 
 		$stateProvider.state('mail', {
@@ -48,7 +48,7 @@
 		});
 	});
 
-	APP.service('UserService', function($http) {
+	app.service('UserService', function($http) {
 		this.getAll = () => {
 			return $http.get(`https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}/users?delay=${TEST_API_RESPONSE_DELAY}`)
 				.then(response => response.data)
@@ -74,7 +74,7 @@
 		};
 	});
 
-	APP.service('TestAPI', function($http) {
+	app.service('TestAPI', function($http) {
 		let defaultUsers = [
 			{
 				'fullName': 'Santana Coffey',
@@ -269,12 +269,26 @@
 				});
 		};
 	});
+	
+	app.service('Styles', function() {
+		this.ICONS = {
+			NO_ICON: '',
+			SPINNER: 'fa fa-spinner fa-pulse fa-fw',
+			DONE: 'fa fa-check',
+			ERROR: 'fa fa-exclamation-triangle'
+		};
 
-	APP.component('mailList', {
+		this.AVAILABILITY = {
+			ENABLED: '',
+			DISABLED: 'disabled',
+		};
+	});
+
+	app.component('mailList', {
 		template: `soon...`,
 	});
 
-	APP.component('contactsList', {
+	app.component('contactsList', {
 		templateUrl: 'templates/contacts/list.html',
 		controller: function(UserService) {
 			this.users = [];
@@ -291,7 +305,7 @@
 		}
 	});
 
-	APP.component('contactsUser', {
+	app.component('contactsUser', {
 		bindings: {
 			userId: '<'
 		},
@@ -319,74 +333,62 @@
 		}
 	});
 
-	APP.component('testApi', {
+	app.component('testApi', {
 		templateUrl: 'templates/test-api/index.html',
-		controller: function(TestAPI, $timeout) {
-			const ICONS = {
-				NO_ICON: '',
-				SPINNER: 'fa fa-spinner fa-pulse fa-fw',
-				DONE: 'fa fa-check',
-				ERROR: 'fa fa-exclamation-triangle'
+		controller: function(TestAPI, $timeout, Styles) {
+			this.icons = {
+				removeAll: Styles.ICONS.NO_ICON,
+				createAll: Styles.ICONS.NO_ICON
 			};
 
-			const ACTIVES = {
-				ENABLED: '',
-				DISABLED: 'disabled',
-			};
-
-			this.requestIcons = {
-				removeAll: '',
-				createAll: ''
-			};
-
-			this.requestActives = {
-				removeAll: '',
-				createAll: ''
+			this.availability = {
+				removeAll: Styles.AVAILABILITY.ENABLED,
+				createAll: Styles.AVAILABILITY.ENABLED
 			};
 
 			this.removeAll = () => {
-				if (this.requestActives.removeAll === ACTIVES.DISABLED) {
+				if (this.availability.removeAll === Styles.AVAILABILITY.DISABLED) {
 					return;
 				}
 
-				this.requestIcons.removeAll = ICONS.SPINNER;
-				this.requestActives.removeAll = ACTIVES.DISABLED;
+				this.icons.removeAll = Styles.ICONS.SPINNER;
+				this.availability.removeAll = Styles.AVAILABILITY.DISABLED;
 
 				TestAPI.removeAllData()
 					.then(() => {
-						this.requestIcons.removeAll = ICONS.DONE;
+						this.icons.removeAll = Styles.ICONS.DONE;
 
 						$timeout(() => {
-							this.requestIcons.removeAll = ICONS.NO_ICON;
-							this.requestActives.removeAll = ACTIVES.ENABLED;
+							this.icons.removeAll = Styles.ICONS.NO_ICON;
+							this.availability.removeAll = Styles.AVAILABILITY.ENABLED;
 						}, RESULT_DELAY);
 					})
 					.catch(error => {
 						console.error(error);
-						this.requestIcons.removeAll = ICONS.ERROR;
+						this.icons.removeAll = Styles.ICONS.ERROR;
 					});
 			};
 
 			this.createAll = () => {
-				if (this.requestActives.createAll === ACTIVES.DISABLED) {
+				if (this.availability.createAll === Styles.AVAILABILITY.DISABLED) {
 					return;
 				}
 
-				this.requestIcons.createAll = ICONS.SPINNER;
-				this.requestActives.createAll = ACTIVES.DISABLED;
+				this.icons.createAll = Styles.ICONS.SPINNER;
+				this.availability.createAll = Styles.AVAILABILITY.DISABLED;
 
 				TestAPI.createAllData()
 					.then(() => {
-						this.requestIcons.createAll = ICONS.DONE;
+						this.icons.createAll = Styles.ICONS.DONE;
 
 						$timeout(() => {
-							this.requestIcons.createAll = ICONS.NO_ICON;
-							this.requestActives.createAll = ACTIVES.ENABLED;
+							this.icons.createAll = Styles.ICONS.NO_ICON;
+							this.availability.createAll = Styles.AVAILABILITY.ENABLED;
 						}, RESULT_DELAY);
 					})
 					.catch(error => {
 						console.error(error);
-						this.requestIcons.createAll = ICONS.ERROR;
+						this.icons.createAll = Styles.ICONS.ERROR;
 					});
 			};
 		}
