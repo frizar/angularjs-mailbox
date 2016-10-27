@@ -1,12 +1,9 @@
 <div class="row">
 	<div class="col-xs-12 col-md-8 offset-md-2">
 		<table class="table">
-			<tr ng-repeat="user in $ctrl.users" ui-sref="contacts.user({userId: user._id})" class="pointer"
-			    ng-class="{'table-info': hover}" ng-mouseover="hover = true" ng-mouseleave="hover = false">
+			<tr ng-repeat="user in $ctrl.users" ng-class="{'table-info': hover}" ng-mouseover="hover = true" ng-mouseleave="hover = false">
 				<td scope="row">
-					<a href="" ui-sref="contacts.user({userId: user._id})">
-						<img class="img-circle m-x-auto d-block" src="" ng-src="{{$ctrl.getThumb(user.avatarUrl)}}" alt="{{user.fullName}}">
-					</a>
+					<img class="img-circle m-x-auto d-block" src="" ng-src="{{$ctrl.getThumb(user.avatarUrl)}}" alt="{{user.fullName}}">
 				</td>
 				<td>
 					<a href="" ui-sref="contacts.user({userId: user._id})" ng-bind="user.fullName"></a>
