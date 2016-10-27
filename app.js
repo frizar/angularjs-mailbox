@@ -63,14 +63,14 @@
 
 		this.getThumbImage = avatarUrl => {
 			// example: https://randomuser.me/api/portraits/men/0.jpg
-			let beginUrl = 'https://randomuser.me/api/portraits';
-			return `${beginUrl}/thumb/${avatarUrl.slice(beginUrl.length)}`;
+			let beginUrl = 'https://randomuser.me/api/portraits/';
+			return `${beginUrl}thumb/${avatarUrl.slice(beginUrl.length)}`;
 		};
 
 		this.getMediumImage = avatarUrl => {
 			// example: https://randomuser.me/api/portraits/men/0.jpg
-			let beginUrl = 'https://randomuser.me/api/portraits';
-			return `${beginUrl}/med/${avatarUrl.slice(beginUrl.length)}`;
+			let beginUrl = 'https://randomuser.me/api/portraits/';
+			return `${beginUrl}med/${avatarUrl.slice(beginUrl.length)}`;
 		};
 	});
 
