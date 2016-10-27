@@ -5,3 +5,7 @@
 nav {
     margin-bottom: 20px;
 }
+
+.pointer {
+    cursor: pointer;
+}

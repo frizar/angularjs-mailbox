@@ -1,7 +1,7 @@
 <div class="row">
 	<div class="col-xs-12 col-md-8 offset-md-2">
 		<table class="table">
-			<tr ng-repeat="user in $ctrl.users">
+			<tr ng-repeat="user in $ctrl.users" ui-sref="contacts.user({userId: user._id})" class="pointer">
 				<td>
 					<a href="" ui-sref="contacts.user({userId: user._id})">
 						<img class="img-circle m-x-auto d-block" src="" ng-src="{{$ctrl.getThumb(user.avatarUrl);}}" alt="{{user.fullName}}">
