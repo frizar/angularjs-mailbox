@@ -1,4 +1,5 @@
-<div class="row">
+<alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'"></alert>
+<div ng-if="!$ctrl.loading" class="row">
 	<div class="col-xs-12 col-md-6 offset-md-3">
 		<div class="card text-xs-center">
 			<div class="card-block">

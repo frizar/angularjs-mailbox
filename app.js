@@ -1,7 +1,7 @@
 ;(function() {
 	'use strict';
 
-	const TEST_API_RESPONSE_DELAY = 0;
+	const TEST_API_RESPONSE_DELAY = 1000;
 	const TEST_API_VERSION = 'v1';
 	const TEST_API_NAMESPACE = 'vschekin';
 	const TEST_API_URL = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}`;
@@ -16,26 +16,26 @@
 		$stateProvider.state('mail', {
 			name: 'mail',
 			url: '/mail',
-			template: `<mail-list />`
+			template: `<mail-list></mail-list>`
 		});
 
 		$stateProvider.state({
 			abstract: true,
 			name: 'contacts',
 			url: '/contacts',
-			template: `<ui-view />`
+			template: `<ui-view></ui-view>`
 		});
 
 		$stateProvider.state({
 			name: 'contacts.list',
 			url: '/list',
-			template: `<contacts-list />`
+			template: `<contacts-list></contacts-list>`
 		});
 
 		$stateProvider.state({
 			name: 'contacts.user',
 			url: '/user/:userId',
-			template: `<contacts-user user-id="userId" />`,
+			template: `<contacts-user user-id="userId"></contacts-user>`,
 			controller: function($scope, $stateParams) {
 				$scope.userId = $stateParams.userId;
 			}
@@ -44,7 +44,7 @@
 		$stateProvider.state({
 			name: 'test-api',
 			url: '/test-api',
-			template: `<test-api />`
+			template: `<test-api></test-api>`
 		});
 	});
 
@@ -284,20 +284,36 @@
 		};
 	});
 
+	app.component('alert', {
+		bindings: {
+			className: '<',
+			title: '<',
+			description: '<'
+		},
+		templateUrl: 'templates/alert/index.html'
+	});
+
 	app.component('mailList', {
-		template: `soon...`,
+		template: `<alert ng-if="true" class-name="'info'" title="''" description="'Soon...'"></alert>`
 	});
 
 	app.component('contactsList', {
 		templateUrl: 'templates/contacts/list.html',
 		controller: function(UserService) {
+			this.noUsers = false;
+			this.loading = true;
 			this.users = [];
 
 			this.getThumb = avatarUrl => UserService.getThumbImage(avatarUrl);
 
 			UserService.getAll()
 				.then(users => {
+					this.loading = false;
 					this.users = users;
+
+					if (!this.users.length) {
+						this.noUsers = true;
+					}
 				})
 				.catch(error => {
 					console.error(error);
@@ -311,6 +327,7 @@
 		},
 		templateUrl: 'templates/contacts/user.html',
 		controller: function(UserService) {
+			this.loading = true;
 			this.user = {};
 
 			this.getGenderIconClass = gender => {
@@ -325,6 +342,8 @@
 
 			UserService.getById(this.userId)
 				.then(user => {
+					this.loading = false;
+
 					this.user = user;
 				})
 				.catch(error => {
