@@ -22,6 +22,15 @@
 		});
 
 		$stateProvider.state({
+			name: 'logout',
+			url: '/logout',
+			controller: function(AuthService, $state) {
+				AuthService.logout();
+				$state.go('login');
+			}
+		});
+
+		$stateProvider.state({
 			abstract: true,
 			name: 'mail',
 			url: '/mail',
@@ -111,6 +120,10 @@
 			auth = true;
 			return $q.resolve();
 		};
+
+		this.logout = () => {
+			auth = false;
+		}
 	});
 
 	app.service('UserService', function($http) {

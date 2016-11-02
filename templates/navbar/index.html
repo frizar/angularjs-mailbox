@@ -1,9 +1,20 @@
 <nav class="navbar navbar-dark bg-primary" ng-if="$ctrl.userIsAuth()">
-	<div class="nav navbar-nav">
-		<a class="nav-item nav-link" ui-sref-active="active" ui-sref="mail.list">Почта</a>
-		<a class="nav-item nav-link" ui-sref-active="active" ui-sref="contacts.list">Контакты</a>
-		<a class="nav-item nav-link" ui-sref-active="active" ui-sref="test-api">
-			<i class="fa fa-cog"></i>
-		</a>
-	</div>
+	<ul class="nav navbar-nav">
+		<li class="nav-item" ui-sref-active="active">
+			<a href class="nav-item nav-link" ui-sref="mail.list">Почта</a>
+		</li>
+		<li class="nav-item" ui-sref-active="active">
+			<a href class="nav-link" ui-sref="contacts.list">Контакты</a>
+		</li>
+	</ul>
+	<ul class="nav navbar-nav float-xs-right">
+		<li class="nav-item" ui-sref-active="active">
+			<a href class="nav-link" ui-sref="test-api">
+				<i class="fa fa-cog"></i>
+			</a>
+		</li>
+		<li class="nav-item" ui-sref-active="active">
+			<a href class="nav-item nav-link" ui-sref="logout">Выйти</a>
+		</li>
+	</ul>
 </nav>
