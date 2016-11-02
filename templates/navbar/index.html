@@ -1,0 +1,9 @@
+<nav class="navbar navbar-dark bg-primary" ng-if="$ctrl.userIsAuth()">
+	<div class="nav navbar-nav">
+		<a class="nav-item nav-link" ui-sref-active="active" ui-sref="mail.list">Почта</a>
+		<a class="nav-item nav-link" ui-sref-active="active" ui-sref="contacts.list">Контакты</a>
+		<a class="nav-item nav-link" ui-sref-active="active" ui-sref="test-api">
+			<i class="fa fa-cog"></i>
+		</a>
+	</div>
+</nav>

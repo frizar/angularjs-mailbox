@@ -10,12 +10,27 @@
 
 	let app = angular.module('mailboxApp', ['ui.router']);
 
-	app.config(function($stateProvider, $urlRouterProvider) {
-		$urlRouterProvider.otherwise('/mail');
+	app.config(($stateProvider, $urlRouterProvider, $httpProvider) => {
+		$httpProvider.interceptors.push('AuthRejector');
 
-		$stateProvider.state('mail', {
+		$urlRouterProvider.otherwise('/mail/list');
+
+		$stateProvider.state({
+			name: 'login',
+			url: '/login',
+			template: '<login-form></login-form>'
+		});
+
+		$stateProvider.state({
+			abstract: true,
 			name: 'mail',
 			url: '/mail',
+			template: `<ui-view></ui-view>`
+		});
+
+		$stateProvider.state({
+			name: 'mail.list',
+			url: '/list',
 			template: `<mail-list></mail-list>`
 		});
 
@@ -46,6 +61,56 @@
 			url: '/test-api',
 			template: `<test-api></test-api>`
 		});
+	});
+
+	app.run(($rootScope, $state, AuthService) => {
+		$rootScope.$on('$stateChangeStart', function(event, toState) {
+			let isAuth = AuthService.isAuth();
+			if (toState.name !== 'login' && !isAuth) {
+				event.preventDefault();
+				$state.go('login');
+			} else if (toState.name === 'login' && isAuth) {
+				event.preventDefault();
+				$state.go('mail.list');
+			}
+		});
+	});
+
+	app.service('AuthRejector', function($q, $injector) {
+		this.responseError = function(responseError) {
+			if (responseError.status === 401) {
+				$injector.get('$state').go('login');
+			}
+
+			return $q.reject(responseError);
+		};
+	});
+
+	app.service('AuthService', function($q) {
+		let auth = false;
+
+		let users = [
+			{email: 'test@gmail.com', password: 'test1234'},
+			{email: 'vasya@gmail.com', password: 'qwerty'},
+			{email: 'petya@gmail.com', password: 'пароль'},
+		];
+
+		this.isAuth = () => auth;
+
+		this.login = (email, password) => {
+			let user = users.find(user => user.email === email);
+
+			if (!user) {
+				return $q.reject({email: 'Пользователь не найден'});
+			}
+
+			if (user.password !== password) {
+				return $q.reject({password: 'Не верный пароль'});
+			}
+
+			auth = true;
+			return $q.resolve();
+		};
 	});
 
 	app.service('UserService', function($http) {
@@ -282,6 +347,31 @@
 			ENABLED: '',
 			DISABLED: 'disabled',
 		};
+	});
+
+	app.component('navBar', {
+		templateUrl: 'templates/navbar/index.html',
+		controller: function(AuthService) {
+			this.userIsAuth = () => AuthService.isAuth();
+		}
+	});
+
+	app.component('loginForm', {
+		templateUrl: 'templates/login/index.html',
+		controller: function(AuthService, $state) {
+			this.email = 'vasya@gmail.com';
+			this.password = 'qwerty';
+
+			this.login = () => {
+				AuthService.login(this.email, this.password)
+					.then(() => {
+						$state.go('mail.list');
+					})
+					.catch(error => {
+						console.error(error);
+					});
+			};
+		}
 	});
 
 	app.component('alert', {
