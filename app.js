@@ -1,7 +1,7 @@
 ;(function() {
 	'use strict';
 
-	const TEST_API_RESPONSE_DELAY = 1000;
+	const TEST_API_RESPONSE_DELAY = 0;
 	const TEST_API_VERSION = 'v1';
 	const TEST_API_NAMESPACE = 'vschekin';
 	const TEST_API_URL = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}`;
@@ -13,7 +13,7 @@
 	app.config(($stateProvider, $urlRouterProvider, $httpProvider) => {
 		$httpProvider.interceptors.push('AuthRejector');
 
-		$urlRouterProvider.otherwise('/mail/list');
+		$urlRouterProvider.otherwise('/contacts/list');
 
 		$stateProvider.state({
 			name: 'login',
@@ -38,9 +38,23 @@
 		});
 
 		$stateProvider.state({
-			name: 'mail.list',
-			url: '/list',
-			template: `<mail-list></mail-list>`
+			name: 'mail.box',
+			url: '/box/:mailboxId',
+			template: `<mail-boxes mailbox-id="mailboxId" mailboxes="mailboxes"></mail-boxes>`,
+			resolve: {
+				mailboxes: function(MailService) {
+					return MailService.getMailboxes();
+				}
+			},
+			controller: function($scope, $state, $stateParams, mailboxes, MailService) {
+				if (!$stateParams.mailboxId) {
+					let inboxId = MailService.getInboxId(mailboxes);
+					$state.go('mail.box', {mailboxId: inboxId});
+				} else {
+					$scope.mailboxes = mailboxes;
+					$scope.mailboxId = $stateParams.mailboxId;
+				}
+			}
 		});
 
 		$stateProvider.state({
@@ -75,12 +89,13 @@
 	app.run(($rootScope, $state, AuthService) => {
 		$rootScope.$on('$stateChangeStart', function(event, toState) {
 			let isAuth = AuthService.isAuth();
+
 			if (toState.name !== 'login' && !isAuth) {
 				event.preventDefault();
 				$state.go('login');
 			} else if (toState.name === 'login' && isAuth) {
 				event.preventDefault();
-				$state.go('mail.list');
+				$state.go('mail.box');
 			}
 		});
 	});
@@ -157,6 +172,22 @@
 			let beginUrl = 'https://randomuser.me/api/portraits/';
 			return `${beginUrl}med/${avatarUrl.slice(beginUrl.length)}`;
 		};
+	});
+
+	app.service('MailService', function($http) {
+		let cachedMailboxes = null;
+
+		this.getMailboxes = () => {
+			if (!cachedMailboxes) {
+				cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes`)
+					.then(response => response.data)
+					.catch(error => error);
+			}
+
+			return cachedMailboxes;
+		};
+
+		this.getInboxId = mailboxes => mailboxes.find(mailbox => mailbox.title === 'Входящие')._id;
 	});
 
 	app.service('TestAPI', function($http) {
@@ -243,21 +274,10 @@
 			}
 		];
 		let defaultMailboxes = [
-			{
-				'title': 'inbox'
-			},
-			{
-				'title': 'outbox'
-			},
-			{
-				'title': 'trash'
-			},
-			{
-				'title': 'drafts'
-			},
-			{
-				'title': 'spam'
-			}
+			{'title': 'Спам'},
+			{'title': 'Корзина'},
+			{'title': 'Отправленные'},
+			{'title': 'Входящие'}
 		];
 		let defaultLetters = [
 			{
@@ -339,7 +359,7 @@
 				.then(response => response.data.mailboxes)
 				.then(mailboxes => {
 					// we need to know inbox _id before we can POST default letters
-					let inbox = mailboxes.find(mailbox => mailbox.title === 'inbox');
+					let inbox = mailboxes.find(mailbox => mailbox.title === 'Входящие');
 
 					return defaultLetters.map(letter => {
 						letter.mailbox = inbox._id;
@@ -354,7 +374,7 @@
 				});
 		};
 	});
-	
+
 	app.service('Styles', function() {
 		this.ICONS = {
 			NO_ICON: '',
@@ -386,7 +406,7 @@
 			this.login = () => {
 				AuthService.login(this.email, this.password)
 					.then(() => {
-						$state.go('mail.list');
+						$state.go('mail.box');
 					})
 					.catch(error => {
 						console.error(error);
@@ -404,8 +424,15 @@
 		templateUrl: 'templates/alert/index.html'
 	});
 
-	app.component('mailList', {
-		template: `<alert ng-if="true" class-name="'info'" title="''" description="'Soon...'"></alert>`
+	app.component('mailBoxes', {
+		bindings: {
+			mailboxId: '<',
+			mailboxes: '<'
+		},
+		templateUrl: 'templates/mail/mailboxes.html',
+		controller: function(MailService) {
+
+		}
 	});
 
 	app.component('contactsList', {
