@@ -6,7 +6,7 @@
 				<h4 class="card-title" ng-bind="$ctrl.user.fullName"></h4>
 				<h6 class="card-subtitle text-muted" ng-bind="$ctrl.user.email"></h6>
 			</div>
-			<img class="card-img-top" src="" ng-src="{{$ctrl.user.avatarUrl}}" alt="{{$ctrl.user.fullName}}">
+			<img class="rounded-circle card-img-top" src="" ng-src="{{$ctrl.user.avatarUrl}}" alt="{{$ctrl.user.fullName}}">
 			<div class="card-block">
 				<p class="card-text">
 					<span ng-bind="$ctrl.user.birthdate | date: 'dd.MM.yyyy'"></span>

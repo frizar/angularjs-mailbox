@@ -1,11 +1,11 @@
 <alert ng-if="$ctrl.noUsers" class-name="'info'" title="''" description="'Контактов не найдено...'"></alert>
 <alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'"></alert>
 <div class="row">
-	<div class="col-xs-12 col-md-8 offset-md-2">
+	<div class="col-xs-12 col-md-6 offset-md-3">
 		<table class="table">
 			<tr ng-repeat="user in $ctrl.users" ng-class="{'table-info': hover}" ng-mouseover="hover = true" ng-mouseleave="hover = false">
 				<td scope="row">
-					<img class="img-circle m-x-auto d-block" src="" ng-src="{{$ctrl.getThumb(user.avatarUrl)}}" alt="{{user.fullName}}">
+					<img class="rounded-circle m-x-auto d-block" src="" ng-src="{{$ctrl.getThumb(user.avatarUrl)}}" alt="{{user.fullName}}">
 				</td>
 				<td>
 					<a href="" ui-sref="contacts.user({userId: user._id})" ng-bind="user.fullName"></a>
