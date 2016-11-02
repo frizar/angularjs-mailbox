@@ -97,6 +97,7 @@
 
 	app.service('AuthService', function($q) {
 		let auth = false;
+		let name = '';
 
 		let users = [
 			{email: 'test@gmail.com', password: 'test1234'},
@@ -105,6 +106,7 @@
 		];
 
 		this.isAuth = () => auth;
+		this.getName = () => name;
 
 		this.login = (email, password) => {
 			let user = users.find(user => user.email === email);
@@ -118,11 +120,16 @@
 			}
 
 			auth = true;
+
+			name = email.split('@')[0];
+			name = name[0].toUpperCase() + name.slice(1);
+
 			return $q.resolve();
 		};
 
 		this.logout = () => {
 			auth = false;
+			name = '';
 		}
 	});
 
@@ -366,6 +373,7 @@
 		templateUrl: 'templates/navbar/index.html',
 		controller: function(AuthService) {
 			this.userIsAuth = () => AuthService.isAuth();
+			this.getUserName = () => AuthService.getName();
 		}
 	});
 
