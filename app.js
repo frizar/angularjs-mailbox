@@ -14,8 +14,8 @@
 		$httpProvider.interceptors.push('AuthRejector');
 
 		$urlRouterProvider
-			.when('/mail/', '/mail/inbox')
-			.otherwise('/mail/inbox');
+			.when('/mail//', '/mail/inbox/')
+			.otherwise('/mail/inbox/');
 
 		$stateProvider.state({
 			name: 'login',
@@ -41,10 +41,11 @@
 
 		$stateProvider.state({
 			name: 'mail.box',
-			url: '/:mailboxKey',
-			templateUrl: 'templates/mail/box.html',
+			url: '/:mailboxKey/:letterId',
+			templateUrl: 'templates/mail/index.html',
 			controller: function($scope, $stateParams) {
 				$scope.mailboxKey = $stateParams.mailboxKey;
+				$scope.letterId = $stateParams.letterId;
 			}
 		});
 
@@ -102,7 +103,7 @@
 	});
 
 	app.service('AuthService', function($q) {
-		let auth = false;
+		let auth = true;
 		let name = '';
 
 		let users = [
@@ -166,18 +167,6 @@
 	});
 
 	app.service('MailService', function($http) {
-		let _cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes${TEST_API_URL_DELAY_PART}`)
-			.then(response => {
-				let mailboxes = response.data;
-				return mailboxes.map(mailbox => {
-					mailbox.key = _defineMailboxKey(mailbox.title);
-					return mailbox;
-				})
-			})
-			.catch(error => error);
-
-		let _letterCounters = {};
-
 		const _defineMailboxKey = title => {
 			if (title === 'Входящие') {
 				return 'inbox';
@@ -192,23 +181,19 @@
 			return '';
 		};
 
-		const _updateMailboxCounters = letters => {
-			_letterCounters = {};
-			letters.forEach(letter => {
-				if (!_letterCounters[letter.mailbox]) {
-					_letterCounters[letter.mailbox] = 0;
-				}
-				_letterCounters[letter.mailbox]++;
-			});
-		};
+		let _cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes${TEST_API_URL_DELAY_PART}`)
+			.then(response => {
+				let mailboxes = response.data;
+				return mailboxes.map(mailbox => {
+					mailbox.key = _defineMailboxKey(mailbox.title);
+					return mailbox;
+				})
+			})
+			.catch(error => error);
 
 		this.getAllLetters = () => {
 			return $http.get(`${TEST_API_URL}/letters${TEST_API_URL_DELAY_PART}`)
-				.then(response => {
-					_updateMailboxCounters(response.data);
-
-					return response.data;
-				})
+				.then(response => response.data)
 				.catch(error => error);
 		};
 
@@ -224,7 +209,11 @@
 			return _cachedMailboxes.then(mailboxes => mailboxes.find(mailbox => mailbox.key === mailboxKey)._id);
 		};
 
-		this.getLettersCount = mailboxId => _letterCounters[mailboxId] || 0;
+		this.getLetter = letterId => {
+			return $http.get(`${TEST_API_URL}/letters/${letterId}${TEST_API_URL_DELAY_PART}`)
+				.then(response => response.data)
+				.catch(error => error);
+		};
 	});
 
 	app.service('TestAPI', function($http) {
@@ -462,14 +451,15 @@
 		templateUrl: 'templates/alert/index.html'
 	});
 
-	app.component('mailBoxes', {
+	app.component('mailboxes', {
+		bindings: {
+			mailboxKey: '<'
+		},
 		templateUrl: 'templates/mail/mailboxes.html',
 		controller: function(MailService) {
 			this.loading = true;
 			this.noMailboxes = false;
 			this.mailboxes = [];
-
-			this.getCounter = mailboxId => MailService.getLettersCount(mailboxId);
 
 			MailService.getMailboxes()
 				.then(mailboxes => {
@@ -486,7 +476,7 @@
 
 	app.component('letters', {
 		bindings: {
-			mailboxKey: '<'
+			mailboxKey: '<',
 		},
 		templateUrl: 'templates/mail/letters.html',
 		controller: function(MailService) {
@@ -509,6 +499,26 @@
 						.catch(error => {
 							console.error(error);
 						});
+				});
+		}
+	});
+
+	app.component('letter', {
+		bindings: {
+			letterId: '<'
+		},
+		templateUrl: 'templates/mail/letter.html',
+		controller: function(MailService) {
+			this.loading = true;
+			this.letter = {};
+
+			MailService.getLetter(this.letterId)
+				.then(letter => {
+					this.loading = false;
+					this.letter = letter;
+				})
+				.catch(error => {
+					console.error(error);
 				});
 		}
 	});

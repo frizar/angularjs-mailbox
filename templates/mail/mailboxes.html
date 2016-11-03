@@ -3,8 +3,7 @@
 
 <div class="list-group">
 	<a href class="list-group-item list-group-item-action" ng-repeat="mailbox in $ctrl.mailboxes"
-	   ui-sref="mail.box({mailboxKey: mailbox.key})" ui-sref-active="list-group-item-info">
+	   ui-sref="mail.box({mailboxKey: mailbox.key, letterId: ''})" ng-class="{'list-group-item-info': mailbox.key === $ctrl.mailboxKey}">
 		<span ng-bind="mailbox.title"></span>
-		<span class="tag tag-primary tag-pill float-xs-right" ng-bind="$ctrl.getCounter(mailbox._id) || ''"></span>
 	</a>
 </div>

@@ -1,0 +1,9 @@
+<div class="row">
+	<div class="col-md-3">
+		<mailboxes mailbox-key="mailboxKey"></mailboxes>
+	</div>
+	<div class="col-md-9">
+		<letters ng-if="!letterId" mailbox-key="mailboxKey" letter-id="letterId"></letters>
+		<letter ng-if="letterId" letter-id="letterId"></letter>
+	</div>
+</div>

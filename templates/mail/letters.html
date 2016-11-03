@@ -1,8 +1,8 @@
 <alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'" icon="'fa fa-spinner fa-spin fa-fw'"></alert>
 <alert ng-if="$ctrl.noLetters" class-name="'info'" title="''" description="'В этой папке нет писем...'"></alert>
 <table class="table table-striped">
-	<tr ng-repeat="letter in $ctrl.letters">
-		<td class="pointer">
+	<tr class="pointer" ng-repeat="letter in $ctrl.letters" ui-sref="mail.box({mailboxKey: $ctrl.mailboxKey, letterId: letter._id})">
+		<td>
 			<b ng-bind="letter.subject"></b>
 		</td>
 		<td ng-bind="letter.body.slice(0, 40) + '...'"></td>
