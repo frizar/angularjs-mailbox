@@ -1,7 +1,7 @@
 <alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'" icon="'fa fa-spinner fa-spin fa-fw'"></alert>
 <alert ng-if="$ctrl.noMailboxes" class-name="'warning'" title="''" description="'Ящики не были созданы...'"></alert>
 
-<div class="list-group">
+<div class="list-group mb20">
 	<a href class="list-group-item list-group-item-action" ng-repeat="mailbox in $ctrl.mailboxes"
 	   ui-sref="mail.box({mailboxKey: mailbox.key, letterId: ''})" ng-class="{'list-group-item-info': mailbox.key === $ctrl.mailboxKey}">
 		<span ng-bind="mailbox.title"></span>
