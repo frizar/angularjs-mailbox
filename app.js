@@ -188,18 +188,6 @@
 			return '';
 		};
 
-		this.getAllLetters = () => {
-			return $http.get(`${TEST_API_URL}/letters${TEST_API_URL_DELAY_PART}`)
-				.then(response => response.data)
-				.catch(error => error);
-		};
-
-		this.getLettersFromMailbox = mailboxId => {
-			return this.getAllLetters()
-				.then(letters => letters.filter(letter => letter.mailbox === mailboxId))
-				.catch(error => error);
-		};
-
 		this.getMailboxes = () => {
 			return $http.get(`${TEST_API_URL}/mailboxes${TEST_API_URL_DELAY_PART}`)
 				.then(response => {
@@ -212,11 +200,31 @@
 				.catch(error => error);
 		};
 
+		let _cachedMailboxes = this.getMailboxes();
+
+		this.getAllLetters = () => {
+			return $http.get(`${TEST_API_URL}/letters${TEST_API_URL_DELAY_PART}`)
+				.then(response => response.data)
+				.catch(error => error);
+		};
+
+		this.getLettersFromMailbox = mailboxId => {
+			return this.getAllLetters()
+				.then(letters => letters.filter(letter => letter.mailbox === mailboxId))
+				.catch(error => error);
+		};
+
+		this.getCachedMailboxes = () => _cachedMailboxes;
+
 		this.getMailboxId = mailboxKey => {
-			return this.getMailboxes().then(mailboxes => {
+			return _cachedMailboxes.then(mailboxes => {
 				let mailbox = mailboxes.find(mailbox => mailbox.key === mailboxKey);
 				return mailbox ? mailbox._id : -1;
 			});
+		};
+
+		this.updateCachedMailboxes = () => {
+			_cachedMailboxes = this.getMailboxes();
 		};
 
 		this.getLetter = letterId => {
@@ -244,7 +252,7 @@
 		};
 	});
 
-	app.service('TestAPI', function($http) {
+	app.service('TestAPI', function($http, MailService) {
 		let defaultUsers = [
 			{
 				'fullName': 'Santana Coffey',
@@ -398,7 +406,10 @@
 
 		this.removeAllData = () => {
 			return $http.delete(`${TEST_API_URL}${TEST_API_URL_DELAY_PART}`)
-				.then(response => response.data)
+				.then(response => {
+					MailService.updateCachedMailboxes();
+					return response.data;
+				})
 				.catch(error => error);
 		};
 
@@ -412,6 +423,7 @@
 			})
 				.then(response => response.data.mailboxes)
 				.then(mailboxes => {
+					MailService.updateCachedMailboxes();
 					// we need to know inbox _id before we can POST default letters
 					let inbox = mailboxes.find(mailbox => mailbox.title === 'Входящие');
 
@@ -490,7 +502,7 @@
 			this.noMailboxes = false;
 			this.mailboxes = [];
 
-			MailService.getMailboxes()
+			MailService.getCachedMailboxes()
 				.then(mailboxes => {
 					this.loading = false;
 
