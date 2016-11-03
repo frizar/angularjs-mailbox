@@ -1,7 +1,7 @@
 ;(function() {
 	'use strict';
 
-	const TEST_API_RESPONSE_DELAY = 1000;
+	const TEST_API_RESPONSE_DELAY = 0;
 	const TEST_API_VERSION = 'v1';
 	const TEST_API_NAMESPACE = 'vschekin';
 	const TEST_API_URL = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}`;
@@ -113,7 +113,7 @@
 
 		let users = [
 			{email: 'test@gmail.com', password: 'test1234', isAdmin: true},
-			{email: 'vasya@gmail.com', password: 'qwerty'},
+			{email: 'vasya@gmail.com', password: 'qwerty', isAdmin: true},
 			{email: 'petya@gmail.com', password: 'пароль'},
 		];
 
@@ -179,24 +179,14 @@
 				return 'inbox';
 			} else if (title === 'Отправленные') {
 				return 'outbox';
-			} else if (title === 'Спам') {
-				return 'spam';
+			} else if (title === 'Важные') {
+				return 'starred';
 			} else if (title === 'Корзина') {
 				return 'trash';
 			}
 
 			return '';
 		};
-
-		let _cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes${TEST_API_URL_DELAY_PART}`)
-			.then(response => {
-				let mailboxes = response.data;
-				return mailboxes.map(mailbox => {
-					mailbox.key = _defineMailboxKey(mailbox.title);
-					return mailbox;
-				})
-			})
-			.catch(error => error);
 
 		this.getAllLetters = () => {
 			return $http.get(`${TEST_API_URL}/letters${TEST_API_URL_DELAY_PART}`)
@@ -210,14 +200,45 @@
 				.catch(error => error);
 		};
 
-		this.getMailboxes = () => _cachedMailboxes;
+		this.getMailboxes = () => {
+			return $http.get(`${TEST_API_URL}/mailboxes${TEST_API_URL_DELAY_PART}`)
+				.then(response => {
+					let mailboxes = response.data;
+					return mailboxes.map(mailbox => {
+						mailbox.key = _defineMailboxKey(mailbox.title);
+						return mailbox;
+					})
+				})
+				.catch(error => error);
+		};
 
 		this.getMailboxId = mailboxKey => {
-			return _cachedMailboxes.then(mailboxes => mailboxes.find(mailbox => mailbox.key === mailboxKey)._id);
+			return this.getMailboxes().then(mailboxes => {
+				let mailbox = mailboxes.find(mailbox => mailbox.key === mailboxKey);
+				return mailbox ? mailbox._id : -1;
+			});
 		};
 
 		this.getLetter = letterId => {
 			return $http.get(`${TEST_API_URL}/letters/${letterId}${TEST_API_URL_DELAY_PART}`)
+				.then(response => response.data)
+				.catch(error => error);
+		};
+
+		this.moveTo = (mailboxKey, letter) => {
+			let mailboxId = this.getMailboxId(mailboxKey)
+				.then(mailboxId => mailboxId);
+
+			return mailboxId.then(mailboxId => {
+				letter.mailbox = mailboxId;
+				return $http.patch(`${TEST_API_URL}/letters/${letter._id}${TEST_API_URL_DELAY_PART}`, letter)
+					.then(response => response.data)
+					.catch(error => error);
+			});
+		};
+
+		this.remove = letterId => {
+			return $http.delete(`${TEST_API_URL}/letters/${letterId}${TEST_API_URL_DELAY_PART}`)
 				.then(response => response.data)
 				.catch(error => error);
 		};
@@ -307,8 +328,8 @@
 			}
 		];
 		let defaultMailboxes = [
-			{'title': 'Спам'},
 			{'title': 'Корзина'},
+			{'title': 'Важные'},
 			{'title': 'Отправленные'},
 			{'title': 'Входящие'}
 		];
@@ -474,9 +495,11 @@
 					this.loading = false;
 
 					this.mailboxes = mailboxes;
+					if (!this.mailboxes.length) {
+						this.noMailboxes = true;
+					}
 				})
 				.catch(error => {
-					this.noMailboxes = true;
 					console.error(error);
 				});
 		}
@@ -508,6 +531,26 @@
 							console.error(error);
 						});
 				});
+
+			this.moveTo = (mailboxKey, letter, index) => {
+				MailService.moveTo(mailboxKey, letter)
+					.then(() => {
+						this.letters.splice(index, 1);
+					})
+					.catch(error => {
+						console.error(error);
+					})
+			};
+
+			this.remove = (letterId, index) => {
+				MailService.remove(letterId)
+					.then(() => {
+						this.letters.splice(index, 1);
+					})
+					.catch(error => {
+						console.error(error);
+					})
+			};
 		}
 	});
 

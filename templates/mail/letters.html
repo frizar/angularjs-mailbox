@@ -1,10 +1,32 @@
 <alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'" icon="'fa fa-spinner fa-spin fa-fw'"></alert>
 <alert ng-if="$ctrl.noLetters" class-name="'info'" title="''" description="'В этой папке нет писем...'"></alert>
 <table class="table table-striped">
-	<tr class="pointer" ng-repeat="letter in $ctrl.letters" ui-sref="mail.box({mailboxKey: $ctrl.mailboxKey, letterId: letter._id})">
-		<td>
+	<tr ng-repeat="letter in $ctrl.letters">
+		<td class="pointer" ui-sref="mail.box({mailboxKey: $ctrl.mailboxKey, letterId: letter._id})">
 			<b ng-bind="letter.subject"></b>
 		</td>
-		<td ng-bind="letter.body.slice(0, 40) + '...'"></td>
+		<td class="pointer" ui-sref="mail.box({mailboxKey: $ctrl.mailboxKey, letterId: letter._id})"
+		    ng-bind="letter.body.slice(0, 40) + '...'"></td>
+		<td class="text-xs-center">
+			<button class="btn btn-default btn-sm" ng-click="$ctrl.moveTo('inbox', letter, $index)" title="Переместить во входящие"
+	        ng-if="$ctrl.mailboxKey === 'starred' || $ctrl.mailboxKey === 'trash'">
+				<i class="fa fa-envelope" aria-hidden="true"></i>
+			</button>
+
+			<button class="btn btn-warning btn-sm" ng-click="$ctrl.moveTo('starred', letter, $index)" title="Переместить в важные"
+	        ng-if="$ctrl.mailboxKey === 'inbox' || $ctrl.mailboxKey === 'trash'">
+				<i class="fa fa-star" aria-hidden="true"></i>
+			</button>
+
+			<button class="btn btn-danger btn-sm" ng-click="$ctrl.moveTo('trash', letter, $index)" title="Переместить в корзину"
+          ng-if="$ctrl.mailboxKey === 'inbox' || $ctrl.mailboxKey === 'starred'">
+				<i class="fa fa-trash" aria-hidden="true"></i>
+			</button>
+
+			<button class="btn btn-danger btn-sm" ng-click="$ctrl.remove(letter._id, $index)" title="Удалить навсегда"
+          ng-if="$ctrl.mailboxKey === 'trash'">
+				<i class="fa fa-ban" aria-hidden="true"></i>
+			</button>
+		</td>
 	</tr>
 </table>

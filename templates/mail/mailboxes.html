@@ -1,5 +1,5 @@
 <alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'" icon="'fa fa-spinner fa-spin fa-fw'"></alert>
-<alert ng-if="$ctrl.noMailboxes" class-name="'danger'" title="'Ошибка'" description="'Не удалось получить ящики...'"></alert>
+<alert ng-if="$ctrl.noMailboxes" class-name="'warning'" title="''" description="'Ящики не были созданы...'"></alert>
 
 <div class="list-group">
 	<a href class="list-group-item list-group-item-action" ng-repeat="mailbox in $ctrl.mailboxes"
