@@ -1,7 +1,7 @@
 ;(function() {
 	'use strict';
 
-	const TEST_API_RESPONSE_DELAY = 0;
+	const TEST_API_RESPONSE_DELAY = 1000;
 	const TEST_API_VERSION = 'v1';
 	const TEST_API_NAMESPACE = 'vschekin';
 	const TEST_API_URL = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}`;
@@ -81,13 +81,17 @@
 	app.run(($rootScope, $state, AuthService) => {
 		$rootScope.$on('$stateChangeStart', function(event, toState) {
 			let isAuth = AuthService.isAuth();
+			let isAdmin = AuthService.getUser().isAdmin;
 
 			if (toState.name !== 'login' && !isAuth) {
 				event.preventDefault();
 				$state.go('login');
 			} else if (toState.name === 'login' && isAuth) {
 				event.preventDefault();
-				$state.go('mail.box.inbox');
+				$state.go('mail.box', {mailboxKey: 'inbox', letterId: ''});
+			} else if (toState.name === 'test-api' && !isAdmin) {
+				event.preventDefault();
+				$state.go('mail.box', {mailboxKey: 'inbox', letterId: ''});
 			}
 		});
 	});
@@ -103,17 +107,19 @@
 	});
 
 	app.service('AuthService', function($q) {
-		let auth = false;
-		let name = '';
+		let _auth = false;
+		let _name = '';
+		let _user = {};
 
 		let users = [
-			{email: 'test@gmail.com', password: 'test1234'},
+			{email: 'test@gmail.com', password: 'test1234', isAdmin: true},
 			{email: 'vasya@gmail.com', password: 'qwerty'},
 			{email: 'petya@gmail.com', password: 'пароль'},
 		];
 
-		this.isAuth = () => auth;
-		this.getName = () => name;
+		this.isAuth = () => _auth;
+		this.getName = () => _name;
+		this.getUser = () => _user;
 
 		this.login = (email, password) => {
 			let user = users.find(user => user.email === email);
@@ -126,17 +132,18 @@
 				return $q.reject({password: 'Не верный пароль'});
 			}
 
-			auth = true;
+			_auth = true;
 
-			name = email.split('@')[0];
-			name = name[0].toUpperCase() + name.slice(1);
+			_name = email.split('@')[0];
+			_name = _name[0].toUpperCase() + _name.slice(1);
+			_user = user;
 
 			return $q.resolve();
 		};
 
 		this.logout = () => {
-			auth = false;
-			name = '';
+			_auth = false;
+			_name = '';
 		}
 	});
 
@@ -420,6 +427,7 @@
 		controller: function(AuthService) {
 			this.userIsAuth = () => AuthService.isAuth();
 			this.getUserName = () => AuthService.getName();
+			this.isAdmin = () => AuthService.getUser().isAdmin;
 		}
 	});
 

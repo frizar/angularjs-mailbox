@@ -13,7 +13,7 @@
 		</li>
 	</ul>
 	<ul class="nav navbar-nav float-xs-right">
-		<li class="nav-item" ui-sref-active="active">
+		<li class="nav-item" ui-sref-active="active" ng-if="$ctrl.isAdmin()">
 			<a href class="nav-link" ui-sref="test-api">
 				<i class="fa fa-cog"></i> test-api
 			</a>
