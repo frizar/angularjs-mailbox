@@ -44,12 +44,14 @@
 			resolve: {
 				mailboxes: function(MailService) {
 					return MailService.getMailboxes();
+				},
+				defaultMailboxId: function(MailService) {
+					return MailService.getDefaultMailboxId();
 				}
 			},
-			controller: function($scope, $state, $stateParams, mailboxes, MailService) {
+			controller: function($scope, $state, $stateParams, mailboxes, defaultMailboxId) {
 				if (!$stateParams.mailboxId) {
-					let inboxId = MailService.getInboxId(mailboxes);
-					$state.go('mail.box', {mailboxId: inboxId});
+					$state.go('mail.box', {mailboxId: defaultMailboxId});
 				} else {
 					$scope.mailboxes = mailboxes;
 					$scope.mailboxId = $stateParams.mailboxId;
@@ -175,19 +177,17 @@
 	});
 
 	app.service('MailService', function($http) {
-		let cachedMailboxes = null;
+		let cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes`)
+			.then(response => response.data)
+			.catch(error => error);
 
-		this.getMailboxes = () => {
-			if (!cachedMailboxes) {
-				cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes`)
-					.then(response => response.data)
-					.catch(error => error);
-			}
+		let defaultMailboxId = cachedMailboxes
+			.then(mailboxes => mailboxes.find(mailbox => mailbox.title === 'Входящие')._id)
+			.catch(error => error);
 
-			return cachedMailboxes;
-		};
+		this.getMailboxes = () => cachedMailboxes;
 
-		this.getInboxId = mailboxes => mailboxes.find(mailbox => mailbox.title === 'Входящие')._id;
+		this.getDefaultMailboxId = () => defaultMailboxId;
 	});
 
 	app.service('TestAPI', function($http) {
@@ -195,7 +195,7 @@
 			{
 				'fullName': 'Santana Coffey',
 				'email': 'santanacoffey@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/men/0.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/men/10.jpg',
 				'birthdate': '2014-07-03',
 				'gender': 'M',
 				'address': '673 Lefferts Place, Swartzville, Virgin Islands, 1790'
@@ -203,7 +203,7 @@
 			{
 				'fullName': 'Deirdre Boyer',
 				'email': 'deirdreboyer@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/women/0.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/10.jpg',
 				'birthdate': '2016-01-05',
 				'gender': 'F',
 				'address': '888 Livonia Avenue, Winesburg, Vermont, 7174'
@@ -211,7 +211,7 @@
 			{
 				'fullName': 'Rachael Skinner',
 				'email': 'rachaelskinner@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/women/1.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/11.jpg',
 				'birthdate': '2015-02-04',
 				'gender': 'F',
 				'address': '589 Verona Street, Kerby, Alabama, 9026'
@@ -219,7 +219,7 @@
 			{
 				'fullName': 'Crawford Barber',
 				'email': 'crawfordbarber@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/men/1.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/men/11.jpg',
 				'birthdate': '2014-07-27',
 				'gender': 'M',
 				'address': '407 Dewey Place, Albrightsville, Maine, 4848'
@@ -227,7 +227,7 @@
 			{
 				'fullName': 'Howell Cole',
 				'email': 'howellcole@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/men/2.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/men/12.jpg',
 				'birthdate': '2014-02-13',
 				'gender': 'M',
 				'address': '215 Allen Avenue, Marne, South Dakota, 8742'
@@ -235,7 +235,7 @@
 			{
 				'fullName': 'Fern Salazar',
 				'email': 'fernsalazar@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/women/2.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/12.jpg',
 				'birthdate': '2014-08-28',
 				'gender': 'F',
 				'address': '321 Polhemus Place, Waiohinu, Minnesota, 3766'
@@ -243,7 +243,7 @@
 			{
 				'fullName': 'Ida Bullock',
 				'email': 'idabullock@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/women/3.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/13.jpg',
 				'birthdate': '2015-11-14',
 				'gender': 'F',
 				'address': '560 Kingston Avenue, Greer, North Carolina, 5899'
@@ -251,7 +251,7 @@
 			{
 				'fullName': 'Hope Moody',
 				'email': 'hopemoody@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/women/4.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/14.jpg',
 				'birthdate': '2014-03-13',
 				'gender': 'F',
 				'address': '295 Kossuth Place, Dowling, Wisconsin, 4553'
@@ -259,7 +259,7 @@
 			{
 				'fullName': 'Beverly Evans',
 				'email': 'beverlyevans@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/women/5.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/15.jpg',
 				'birthdate': '2014-12-29',
 				'gender': 'F',
 				'address': '431 Beacon Court, Eureka, Virginia, 5177'
@@ -267,7 +267,7 @@
 			{
 				'fullName': 'Valenzuela Velasquez',
 				'email': 'valenzuelavelasquez@tellifly.com',
-				'avatarUrl': 'https://randomuser.me/api/portraits/men/3.jpg',
+				'avatarUrl': 'https://randomuser.me/api/portraits/women/17.jpg',
 				'birthdate': '2014-09-21',
 				'gender': 'M',
 				'address': '508 Cambridge Place, Trucksville, Puerto Rico, 6877'
