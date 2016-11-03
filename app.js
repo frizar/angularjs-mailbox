@@ -103,7 +103,7 @@
 	});
 
 	app.service('AuthService', function($q) {
-		let auth = true;
+		let auth = false;
 		let name = '';
 
 		let users = [
