@@ -1,11 +1,10 @@
-<div class="row">
-	<div class="col-md-3">
-		<div class="list-group">
-			<a href class="list-group-item list-group-item-action" ng-repeat="mailbox in $ctrl.mailboxes"
-			   ui-sref="mail.box({mailboxId: mailbox._id})" ui-sref-active="list-group-item-info">
-				<span ng-bind="mailbox.title"></span>
-				<span class="tag tag-default tag-pill float-xs-right">0</span>
-			</a>
-		</div>
-	</div>
+<alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'" icon="'fa fa-spinner fa-spin fa-fw'"></alert>
+<alert ng-if="$ctrl.noMailboxes" class-name="'danger'" title="'Ошибка'" description="'Не удалось получить ящики...'"></alert>
+
+<div class="list-group">
+	<a href class="list-group-item list-group-item-action" ng-repeat="mailbox in $ctrl.mailboxes"
+	   ui-sref="mail.box({mailboxKey: mailbox.key})" ui-sref-active="list-group-item-info">
+		<span ng-bind="mailbox.title"></span>
+		<span class="tag tag-primary tag-pill float-xs-right" ng-bind="$ctrl.getCounter(mailbox._id) || ''"></span>
+	</a>
 </div>

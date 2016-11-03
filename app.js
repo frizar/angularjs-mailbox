@@ -5,7 +5,7 @@
 	const TEST_API_VERSION = 'v1';
 	const TEST_API_NAMESPACE = 'vschekin';
 	const TEST_API_URL = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}`;
-	const TEST_API_URL_DEFERRED = `https://test-api.javascript.ru/${TEST_API_VERSION}/${TEST_API_NAMESPACE}?delay=${TEST_API_RESPONSE_DELAY}`;
+	const TEST_API_URL_DELAY_PART = `?delay=${TEST_API_RESPONSE_DELAY}`;
 	const RESULT_DELAY = 3000;
 
 	let app = angular.module('mailboxApp', ['ui.router']);
@@ -13,7 +13,9 @@
 	app.config(($stateProvider, $urlRouterProvider, $httpProvider) => {
 		$httpProvider.interceptors.push('AuthRejector');
 
-		$urlRouterProvider.otherwise('/contacts/list');
+		$urlRouterProvider
+			.when('/mail/', '/mail/inbox')
+			.otherwise('/mail/inbox');
 
 		$stateProvider.state({
 			name: 'login',
@@ -39,23 +41,10 @@
 
 		$stateProvider.state({
 			name: 'mail.box',
-			url: '/box/:mailboxId',
-			template: `<mail-boxes mailbox-id="mailboxId" mailboxes="mailboxes"></mail-boxes>`,
-			resolve: {
-				mailboxes: function(MailService) {
-					return MailService.getMailboxes();
-				},
-				defaultMailboxId: function(MailService) {
-					return MailService.getDefaultMailboxId();
-				}
-			},
-			controller: function($scope, $state, $stateParams, mailboxes, defaultMailboxId) {
-				if (!$stateParams.mailboxId) {
-					$state.go('mail.box', {mailboxId: defaultMailboxId});
-				} else {
-					$scope.mailboxes = mailboxes;
-					$scope.mailboxId = $stateParams.mailboxId;
-				}
+			url: '/:mailboxKey',
+			templateUrl: 'templates/mail/box.html',
+			controller: function($scope, $stateParams) {
+				$scope.mailboxKey = $stateParams.mailboxKey;
 			}
 		});
 
@@ -97,7 +86,7 @@
 				$state.go('login');
 			} else if (toState.name === 'login' && isAuth) {
 				event.preventDefault();
-				$state.go('mail.box');
+				$state.go('mail.box.inbox');
 			}
 		});
 	});
@@ -177,17 +166,65 @@
 	});
 
 	app.service('MailService', function($http) {
-		let cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes`)
-			.then(response => response.data)
+		let _cachedMailboxes = $http.get(`${TEST_API_URL}/mailboxes${TEST_API_URL_DELAY_PART}`)
+			.then(response => {
+				let mailboxes = response.data;
+				return mailboxes.map(mailbox => {
+					mailbox.key = _defineMailboxKey(mailbox.title);
+					return mailbox;
+				})
+			})
 			.catch(error => error);
 
-		let defaultMailboxId = cachedMailboxes
-			.then(mailboxes => mailboxes.find(mailbox => mailbox.title === 'Входящие')._id)
-			.catch(error => error);
+		let _letterCounters = {};
 
-		this.getMailboxes = () => cachedMailboxes;
+		const _defineMailboxKey = title => {
+			if (title === 'Входящие') {
+				return 'inbox';
+			} else if (title === 'Отправленные') {
+				return 'outbox';
+			} else if (title === 'Спам') {
+				return 'spam';
+			} else if (title === 'Корзина') {
+				return 'trash';
+			}
 
-		this.getDefaultMailboxId = () => defaultMailboxId;
+			return '';
+		};
+
+		const _updateMailboxCounters = letters => {
+			_letterCounters = {};
+			letters.forEach(letter => {
+				if (!_letterCounters[letter.mailbox]) {
+					_letterCounters[letter.mailbox] = 0;
+				}
+				_letterCounters[letter.mailbox]++;
+			});
+		};
+
+		this.getAllLetters = () => {
+			return $http.get(`${TEST_API_URL}/letters${TEST_API_URL_DELAY_PART}`)
+				.then(response => {
+					_updateMailboxCounters(response.data);
+
+					return response.data;
+				})
+				.catch(error => error);
+		};
+
+		this.getLettersFromMailbox = mailboxId => {
+			return this.getAllLetters()
+				.then(letters => letters.filter(letter => letter.mailbox === mailboxId))
+				.catch(error => error);
+		};
+
+		this.getMailboxes = () => _cachedMailboxes;
+
+		this.getMailboxId = mailboxKey => {
+			return _cachedMailboxes.then(mailboxes => mailboxes.find(mailbox => mailbox.key === mailboxKey)._id);
+		};
+
+		this.getLettersCount = mailboxId => _letterCounters[mailboxId] || 0;
 	});
 
 	app.service('TestAPI', function($http) {
@@ -343,17 +380,17 @@
 		];
 
 		this.removeAllData = () => {
-			return $http.delete(TEST_API_URL_DEFERRED)
+			return $http.delete(`${TEST_API_URL}${TEST_API_URL_DELAY_PART}`)
 				.then(response => response.data)
 				.catch(error => error);
 		};
 
 		this.createAllData = () => {
-			$http.post(TEST_API_URL_DEFERRED, {
+			$http.post(`${TEST_API_URL}${TEST_API_URL_DELAY_PART}`, {
 				users: defaultUsers
 			});
 
-			return $http.post(TEST_API_URL_DEFERRED, {
+			return $http.post(`${TEST_API_URL}${TEST_API_URL_DELAY_PART}`, {
 				mailboxes: defaultMailboxes
 			})
 				.then(response => response.data.mailboxes)
@@ -367,7 +404,7 @@
 					});
 				})
 				.then(letters => {
-					return $http.post(TEST_API_URL_DEFERRED, {
+					return $http.post(`${TEST_API_URL}${TEST_API_URL_DELAY_PART}`, {
 						letters: letters
 					})
 						.then(response => 'ok');
@@ -406,7 +443,7 @@
 			this.login = () => {
 				AuthService.login(this.email, this.password)
 					.then(() => {
-						$state.go('mail.box');
+						$state.go('mail.box', {mailboxKey: 'inbox'});
 					})
 					.catch(error => {
 						console.error(error);
@@ -419,19 +456,60 @@
 		bindings: {
 			className: '<',
 			title: '<',
-			description: '<'
+			description: '<',
+			icon: '<'
 		},
 		templateUrl: 'templates/alert/index.html'
 	});
 
 	app.component('mailBoxes', {
-		bindings: {
-			mailboxId: '<',
-			mailboxes: '<'
-		},
 		templateUrl: 'templates/mail/mailboxes.html',
 		controller: function(MailService) {
+			this.loading = true;
+			this.noMailboxes = false;
+			this.mailboxes = [];
 
+			this.getCounter = mailboxId => MailService.getLettersCount(mailboxId);
+
+			MailService.getMailboxes()
+				.then(mailboxes => {
+					this.loading = false;
+
+					this.mailboxes = mailboxes;
+				})
+				.catch(error => {
+					this.noMailboxes = true;
+					console.error(error);
+				});
+		}
+	});
+
+	app.component('letters', {
+		bindings: {
+			mailboxKey: '<'
+		},
+		templateUrl: 'templates/mail/letters.html',
+		controller: function(MailService) {
+			this.loading = true;
+			this.noLetters = false;
+			this.letters = [];
+
+			MailService.getMailboxId(this.mailboxKey || 'inbox')
+				.then(mailboxId => mailboxId)
+				.then(mailboxId => {
+					MailService.getLettersFromMailbox(mailboxId)
+						.then(letters => {
+							this.loading = false;
+
+							this.letters = letters;
+							if (!this.letters.length) {
+								this.noLetters = true;
+							}
+						})
+						.catch(error => {
+							console.error(error);
+						});
+				});
 		}
 	});
 

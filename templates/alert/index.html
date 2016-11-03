@@ -1,3 +1,5 @@
-<div class="alert alert-{{$ctrl.className}}" role="alert">
-	<strong ng-bind="$ctrl.title"></strong> <span ng-bind="$ctrl.description"></span>
+<div ng-class="'alert alert-' + $ctrl.className" role="alert">
+	<strong ng-bind="$ctrl.title"></strong>
+	<span ng-class="$ctrl.icon"></span>
+	<span ng-bind="$ctrl.description"></span>
 </div>
