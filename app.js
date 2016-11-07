@@ -642,7 +642,7 @@
 				this.usersNotFound = false;
 				this.foundedUsers = [];
 
-				if (!this.searchUserQuery || !this.users.length) {
+				if (!this.searchUserQuery) {
 					return;
 				}
 
