@@ -152,6 +152,7 @@
 		this.logout = () => {
 			_auth = false;
 			_name = '';
+			_user = {};
 		}
 	});
 
@@ -484,13 +485,29 @@
 			this.email = 'vasya@gmail.com';
 			this.password = 'qwerty';
 
+			this.errors = {
+				email: '',
+				password: ''
+			};
+
 			this.login = () => {
+				this.errors = {
+					email: '',
+					password: ''
+				};
+
 				AuthService.login(this.email, this.password)
 					.then(() => {
 						$state.go('mail.box', {mailboxKey: 'inbox'});
 					})
 					.catch(error => {
 						console.error(error);
+						if (error.email) {
+							this.errors.email = error.email;
+						}
+						if (error.password) {
+							this.errors.password = error.password;
+						}
 					});
 			};
 		}
