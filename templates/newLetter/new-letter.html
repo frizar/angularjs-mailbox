@@ -1,0 +1,66 @@
+<div class="row">
+	<div class="col-xs-12 col-md-6 offset-md-3">
+		<div class="input-group mb-1">
+			<span class="input-group-addon" id="basic-addon1">
+				<i class="fa fa-search" aria-hidden="true"></i>
+			</span>
+			<input type="text" class="form-control" placeholder="Имя пользователя или E-mail" aria-describedby="basic-addon1"
+	       ng-model="$ctrl.searchUserQuery" ng-change="$ctrl.findUsers()">
+		</div>
+	</div>
+	<div ng-if="$ctrl.usersNotFound" class="col-xs-12 col-md-6 offset-md-3">
+		<alert class-name="'warning'" description="'Пользователи не найдены...'"></alert>
+	</div>
+	<div ng-if="$ctrl.searchUserQuery && !$ctrl.usersNotFound" class="col-xs-12 col-md-6 offset-md-3 user-picker">
+		<table class="table">
+			<tr ng-repeat="user in $ctrl.foundedUsers" ng-class="{'table-info': hover}"
+			    ng-mouseover="hover = true" ng-mouseleave="hover = false" class="pointer"
+			    ng-click="$ctrl.setLetterTo(user.email)">
+				<td scope="row">
+					<img class="rounded-circle m-x-auto d-block" src="" ng-src="{{$ctrl.getThumb(user.avatarUrl)}}" alt="{{user.fullName}}">
+				</td>
+				<td>
+					<a href="" ui-sref="contacts.user({userId: user._id})" ng-bind="user.fullName"></a>
+					<br>
+					<span class="text-muted" ng-bind="user.email"></span>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div ng-if="$ctrl.emailSended" class="col-xs-12 col-md-6 offset-md-3">
+		<alert class-name="'success'" icon="'fa fa-check'" description="'Письмо отправлено'"></alert>
+	</div>
+	<div class="col-xs-12 col-md-6 offset-md-3">
+		<form ng-submit="$ctrl.sendLetter()">
+			<table class="table">
+				<tr>
+					<td>Кому</td>
+					<td scope="row">
+						<input type="email" required class="form-control" ng-model="$ctrl.letter.to">
+					</td>
+				</tr>
+				<tr>
+					<td>Тема</td>
+					<td>
+						<input type="text" required class="form-control" ng-model="$ctrl.letter.subject">
+					</td>
+				</tr>
+				<tr>
+					<td>Текст</td>
+					<td>
+						<textarea class="form-control" required rows="10" ng-model="$ctrl.letter.body"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<button class="btn btn-primary" type="submit">
+							<i class="fa fa-paper-plane" aria-hidden="true"></i> Отправить
+						</button>
+						<i ng-if="$ctrl.emailSended" class="fa fa-check" aria-hidden="true"></i>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>

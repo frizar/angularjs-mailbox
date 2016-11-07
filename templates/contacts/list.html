@@ -10,11 +10,11 @@
 				<td>
 					<a href="" ui-sref="contacts.user({userId: user._id})" ng-bind="user.fullName"></a>
 				</td>
-				<!--<td>-->
-					<!--<button type="button" class="btn btn-success m-x-auto d-block">-->
-						<!--<i class="fa fa-envelope"></i>-->
-					<!--</button>-->
-				<!--</td>-->
+				<td>
+					<button type="button" class="btn btn-primary m-x-auto d-block" ui-sref="newLetter({userId: user._id})">
+						<i class="fa fa-envelope"></i>
+					</button>
+				</td>
 			</tr>
 		</table>
 	</div>

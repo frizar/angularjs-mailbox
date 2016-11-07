@@ -1,3 +1,4 @@
 <alert ng-if="$ctrl.loading" class-name="'info'" title="''" description="'Загрузка...'" icon="'fa fa-spinner fa-spin fa-fw'"></alert>
 <h1 ng-bind="$ctrl.letter.subject"></h1>
+<p ng-if="$ctrl.mailboxKey === 'outbox'" ng-bind="$ctrl.letter.to"></p>
 <p ng-bind="$ctrl.letter.body"></p>

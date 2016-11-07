@@ -17,65 +17,73 @@
 			.when('/mail//', '/mail/inbox/')
 			.otherwise('/mail/inbox/');
 
-		$stateProvider.state({
-			name: 'login',
-			url: '/login',
-			template: '<login-form></login-form>'
-		});
-
-		$stateProvider.state({
-			name: 'logout',
-			url: '/logout',
-			controller: function(AuthService, $state) {
-				AuthService.logout();
-				$state.go('login');
-			}
-		});
-
-		$stateProvider.state({
-			abstract: true,
-			name: 'mail',
-			url: '/mail',
-			template: `<ui-view></ui-view>`
-		});
-
-		$stateProvider.state({
-			name: 'mail.box',
-			url: '/:mailboxKey/:letterId',
-			templateUrl: 'templates/mail/index.html',
-			controller: function($scope, $stateParams) {
-				$scope.mailboxKey = $stateParams.mailboxKey;
-				$scope.letterId = $stateParams.letterId;
-			}
-		});
-
-		$stateProvider.state({
-			abstract: true,
-			name: 'contacts',
-			url: '/contacts',
-			template: `<ui-view></ui-view>`
-		});
-
-		$stateProvider.state({
-			name: 'contacts.list',
-			url: '/list',
-			template: `<contacts-list></contacts-list>`
-		});
-
-		$stateProvider.state({
-			name: 'contacts.user',
-			url: '/user/:userId',
-			template: `<contacts-user user-id="userId"></contacts-user>`,
-			controller: function($scope, $stateParams) {
-				$scope.userId = $stateParams.userId;
-			}
-		});
-
-		$stateProvider.state({
-			name: 'test-api',
-			url: '/test-api',
-			template: `<test-api></test-api>`
-		});
+		$stateProvider
+			.state({
+				name: 'login',
+				url: '/login',
+				template: '<login-form></login-form>'
+			})
+			.state({
+				name: 'logout',
+				url: '/logout',
+				controller: function(AuthService, $state) {
+					AuthService.logout();
+					$state.go('login');
+				}
+			})
+			.state({
+				abstract: true,
+				name: 'mail',
+				url: '/mail',
+				template: `<ui-view></ui-view>`
+			})
+			.state({
+				name: 'mail.box',
+				url: '/:mailboxKey/:letterId',
+				templateUrl: 'templates/mail/index.html',
+				controller: function($scope, $stateParams) {
+					$scope.mailboxKey = $stateParams.mailboxKey;
+					$scope.letterId = $stateParams.letterId;
+				}
+			})
+			.state({
+				name: 'newLetter',
+				url: '/new-letter/:userId',
+				resolve: {
+					outboxId: function(MailService) {
+						return MailService.getMailboxId('outbox');
+					}
+				},
+				templateUrl: 'templates/newLetter/index.html',
+				controller: function($scope, $stateParams, outboxId) {
+					$scope.userId = $stateParams.userId;
+					$scope.outboxId = outboxId;
+				}
+			})
+			.state({
+				abstract: true,
+				name: 'contacts',
+				url: '/contacts',
+				template: `<ui-view></ui-view>`
+			})
+			.state({
+				name: 'contacts.list',
+				url: '/list',
+				template: `<contacts-list></contacts-list>`
+			})
+			.state({
+				name: 'contacts.user',
+				url: '/user/:userId',
+				template: `<contacts-user user-id="userId"></contacts-user>`,
+				controller: function($scope, $stateParams) {
+					$scope.userId = $stateParams.userId;
+				}
+			})
+			.state({
+				name: 'test-api',
+				url: '/test-api',
+				template: `<test-api></test-api>`
+			});
 	});
 
 	app.run(($rootScope, $state, AuthService) => {
@@ -247,6 +255,12 @@
 
 		this.remove = letterId => {
 			return $http.delete(`${TEST_API_URL}/letters/${letterId}${TEST_API_URL_DELAY_PART}`)
+				.then(response => response.data)
+				.catch(error => error);
+		};
+
+		this.sendLetter = letter => {
+			return $http.post(`${TEST_API_URL}/letters/${TEST_API_URL_DELAY_PART}`, letter)
 				.then(response => response.data)
 				.catch(error => error);
 		};
@@ -551,7 +565,7 @@
 					})
 					.catch(error => {
 						console.error(error);
-					})
+					});
 			};
 
 			this.remove = (letterId, index) => {
@@ -561,14 +575,15 @@
 					})
 					.catch(error => {
 						console.error(error);
-					})
+					});
 			};
 		}
 	});
 
 	app.component('letter', {
 		bindings: {
-			letterId: '<'
+			letterId: '<',
+			mailboxKey: '<'
 		},
 		templateUrl: 'templates/mail/letter.html',
 		controller: function(MailService) {
@@ -579,6 +594,94 @@
 				.then(letter => {
 					this.loading = false;
 					this.letter = letter;
+				})
+				.catch(error => {
+					console.error(error);
+				});
+		}
+	});
+
+	app.component('newLetter', {
+		bindings: {
+			userId: '<',
+			outboxId: '<'
+		},
+		templateUrl: 'templates/newLetter/new-letter.html',
+		controller: function(MailService, UserService, $timeout) {
+			this.letter = {
+				subject: '',
+				mailbox: this.outboxId,
+				body: '',
+				to: ''
+			};
+
+			this.searchUserQuery = '';
+			this.usersNotFound = false;
+			this.users = [];
+			this.foundedUsers = [];
+			this.emailSended = false;
+
+			this.findUsers = () => {
+				this.usersNotFound = false;
+				this.foundedUsers = [];
+
+				if (!this.searchUserQuery || !this.users.length) {
+					return;
+				}
+
+				let query = this.searchUserQuery.toLowerCase();
+
+				let foundedUsers = this.users.filter(user => {
+					let emailIsFound = user.email.toLowerCase().indexOf(query) > -1;
+					let userNameIsFound = user.fullName.toLowerCase().indexOf(query) > -1;
+
+					return emailIsFound || userNameIsFound;
+				});
+
+				this.usersNotFound = !foundedUsers.length;
+				this.foundedUsers = foundedUsers;
+			};
+
+			this.getThumb = avatarUrl => UserService.getThumbImage(avatarUrl);
+
+			this.setLetterTo = email => {
+				this.letter.to = email;
+
+				$timeout(() => {
+					this.usersNotFound = false;
+					this.foundedUsers = [];
+					this.searchUserQuery = '';
+				}, 1000);
+			};
+
+			this.sendLetter = () => {
+				MailService.sendLetter(this.letter)
+					.then(() => {
+						this.letter = {
+							subject: '',
+							mailbox: this.outboxId,
+							body: '',
+							to: ''
+						};
+
+						this.emailSended = true;
+						$timeout(() => {
+							this.emailSended = false;
+						}, RESULT_DELAY);
+					})
+					.catch(errors => {
+						console.log(errors);
+					});
+			};
+
+			UserService.getAll()
+				.then(users => {
+					this.users = users;
+
+					if (this.userId) {
+						let user = this.users.find(user => user._id === this.userId);
+						this.letter.to = user ? user.email : '';
+					}
 				})
 				.catch(error => {
 					console.error(error);

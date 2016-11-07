@@ -13,8 +13,9 @@
 					<i ng-class="$ctrl.getGenderIconClass($ctrl.user.gender);" aria-hidden="true"></i>
 				</p>
 				<p class="card-text" ng-bind="$ctrl.user.address"></p>
-				<!--<a href="" class="card-link">Card link</a>-->
-				<!--<a href="" class="card-link">Another link</a>-->
+				<button ui-sref="newLetter({userId: $ctrl.user._id})" class="card-link btn btn-primary">
+					<i class="fa fa-envelope" aria-hidden="true"></i> Отправить сообщение
+				</button>
 			</div>
 		</div>
 	</div>

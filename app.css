@@ -21,3 +21,8 @@ nav {
 .mb20 {
     margin-bottom: 20px;
 }
+
+.user-picker {
+    max-height: 220px;
+    overflow-y: auto;
+}

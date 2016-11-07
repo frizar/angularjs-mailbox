@@ -1,9 +1,10 @@
 <div class="row">
 	<div class="col-md-3">
+		<button class="mb-1 btn btn-primary btn-block" ui-sref="newLetter">Написать</button>
 		<mailboxes mailbox-key="mailboxKey"></mailboxes>
 	</div>
 	<div class="col-md-9">
-		<letters ng-if="!letterId" mailbox-key="mailboxKey" letter-id="letterId"></letters>
-		<letter ng-if="letterId" letter-id="letterId"></letter>
+		<letters ng-if="!letterId" mailbox-key="mailboxKey"></letters>
+		<letter ng-if="letterId" mailbox-key="mailboxKey" letter-id="letterId"></letter>
 	</div>
 </div>
