@@ -120,7 +120,7 @@
 		let _user = {};
 
 		let users = [
-			{email: 'test@gmail.com', password: 'test1234', isAdmin: true},
+			{email: 'test@gmail.com', password: 'test1234'},
 			{email: 'vasya@gmail.com', password: 'qwerty', isAdmin: true},
 			{email: 'petya@gmail.com', password: 'пароль'},
 		];
